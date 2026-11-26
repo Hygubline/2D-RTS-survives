@@ -1,0 +1,297 @@
+/* Ashwood Vigil — storybook look: cream paper, warm-brown ink, watercolour accents.
+   Tokens shared by hud.css and screens.css. */
+:root {
+  /* paper */
+  --paper: #fbf3df;
+  --paper-2: #f4e6c4;
+  --paper-3: #e9d4a4;
+  --paper-edge: #d8bd88;
+  /* ink */
+  --ink: #3d2817;
+  --ink-2: #6b4c30;
+  --ink-3: #9a7a58;
+  /* watercolour accents */
+  --honey: #e39a2d;
+  --honey-2: #f7c75e;
+  --leaf: #4f9a43;
+  --leaf-2: #9fd27a;
+  --rose: #cf4f3f;
+  --rose-2: #f3a596;
+  --sky: #4d8fc4;
+  --sky-2: #a9d3f0;
+  --plum: #7d5bb5;
+  --plum-2: #c9b3ee;
+  --dusk: #2e3566;
+  --dusk-2: #4a5596;
+  /* legacy names, re-pointed so any stray reference still fits the palette */
+  --amber: var(--honey);
+  --good: var(--leaf);
+  --bad: var(--rose);
+  --frost: var(--sky);
+  --parch: var(--ink);
+  --parch-dim: var(--ink-2);
+  --bronze-0: var(--paper-edge);
+  --bronze-1: var(--ink-3);
+  --bronze-2: var(--ink-2);
+  --bronze-3: var(--ink);
+  /* hand-drawn shapes */
+  --wob: 16px 6px 14px 7px / 7px 14px 6px 16px;
+  --wob-s: 9px 4px 8px 5px / 5px 8px 4px 9px;
+  --print: 3px 4px 0 rgba(61, 40, 23, 0.22);
+  --print-s: 2px 2px 0 rgba(61, 40, 23, 0.2);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .16 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --display: 'ZCOOL KuaiLe', 'STXingkai', 'KaiTi', 'Microsoft YaHei', sans-serif;
+  --num: 'Fredoka', 'Microsoft YaHei', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #262a52;
+  color: var(--ink);
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  user-select: none;
+}
+#app {
+  position: fixed;
+  inset: 0;
+}
+#view {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* ------------- overlays (HUD lives in hud.css) ------------- */
+#overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 214, 140, 0.18), transparent 60%),
+    radial-gradient(ellipse at center, rgba(38, 42, 82, 0.55), rgba(24, 26, 54, 0.88));
+}
+.panel {
+  position: relative;
+  width: min(920px, 92vw);
+  max-height: 92vh;
+  overflow: auto;
+  padding: 30px 40px 26px;
+  border: 3px solid var(--ink);
+  border-radius: var(--wob);
+  box-shadow:
+    inset 0 0 0 5px var(--paper),
+    inset 0 0 0 6.5px var(--paper-edge),
+    6px 8px 0 rgba(20, 14, 30, 0.35);
+  text-align: center;
+  animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes rise {
+  from {
+    transform: translateY(24px) scale(0.98) rotate(-0.6deg);
+    opacity: 0;
+  }
+}
+.panel h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 68px;
+  margin: 0;
+  letter-spacing: 12px;
+  color: var(--honey);
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 3px 4px 0 rgba(61, 40, 23, 0.25);
+}
+.panel h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 34px;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.panel .sub {
+  font-family: var(--num);
+  letter-spacing: 3px;
+  color: var(--ink-2);
+  margin: 4px 0 18px;
+}
+.crest {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 60%, #fff4c0 0 10%, var(--honey-2) 18%, rgba(247, 199, 94, 0.35) 38%, transparent 62%);
+  animation: flicker 2.6s infinite ease-in-out;
+}
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.08) translateY(-2px);
+    filter: brightness(1.15);
+  }
+  70% {
+    transform: scale(0.96);
+    filter: brightness(0.95);
+  }
+}
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  text-align: left;
+  margin: 10px 0 20px;
+}
+.help-grid h3 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--ink);
+  margin: 0 0 6px;
+  padding-bottom: 2px;
+  border-bottom: 2px dashed var(--paper-edge);
+}
+.help-grid p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.7;
+}
+kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 5px;
+  margin: 0 2px;
+  font-family: var(--num);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+  background: #fffaf0;
+  border: 1.5px solid var(--ink);
+  border-bottom-width: 3px;
+  border-radius: 5px 4px 6px 4px;
+}
+button.big {
+  font-family: var(--display);
+  font-size: 25px;
+  padding: 10px 40px;
+  color: var(--ink);
+  background: linear-gradient(180deg, #ffe08a, var(--honey-2) 55%, var(--honey));
+  border: 3px solid var(--ink);
+  border-radius: 22px 10px 20px 12px / 12px 20px 10px 22px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    0 5px 0 var(--ink);
+  cursor: pointer;
+  letter-spacing: 4px;
+  transition: transform 0.08s, filter 0.15s;
+}
+button.big:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px) rotate(-0.5deg);
+}
+button.big:active {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    0 1px 0 var(--ink);
+}
+.seed {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 10px 0 0;
+}
+.panel.end.lose h1 {
+  color: var(--rose);
+}
+.endstats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0 24px;
+}
+.endstats div {
+  padding: 10px;
+  border: 2px solid var(--ink);
+  border-radius: var(--wob-s);
+  background: #fffaf0;
+}
+.endstats b {
+  display: block;
+  font-family: var(--num);
+  font-size: 30px;
+  color: var(--ink);
+}
+.endstats span {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+@media (max-width: 1100px) {
+  .help-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* developer panel: kept as a plain index card */
+#devpanel {
+  position: absolute;
+  right: 12px;
+  top: 56px;
+  width: 260px;
+  padding: 10px 12px;
+  z-index: 25;
+  background: #fffaf0 var(--grain);
+  border: 2px solid var(--ink);
+  border-radius: var(--wob-s);
+  box-shadow: var(--print);
+  font-size: 12px;
+  color: var(--ink);
+}
+#devpanel[hidden] {
+  display: none;
+}
+.dev-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.dev-title small {
+  color: var(--ink-3);
+}
+.dev-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+#devpanel button,
+#devpanel select {
+  flex: 1;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px 4px 6px 4px;
+  cursor: pointer;
+}
+#devpanel button:hover {
+  background: var(--honey-2);
+}
+#dev-status {
+  margin-top: 6px;
+  color: var(--leaf);
+  min-height: 14px;
+}

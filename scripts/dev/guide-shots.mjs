@@ -1,0 +1,54 @@
+// Objectives tracker + build ghost label. Usage: npm run dev, then node scripts/dev/guide-shots.mjs
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+const shot = (n) => page.screenshot({ path: `playtest-shots/guide-${n}.png` });
+const ev = (f, a) => page.evaluate(f, a);
+await page.goto('http://localhost:5199/?seed=1', { waitUntil: 'networkidle' });
+await page.click('#btn-start');
+await page.waitForTimeout(400);
+await page.keyboard.press('Space');
+const s = await ev(() => window.__debug.state());
+// nearest free grove to the warden
+const g = s.groves.filter((x) => x.claimedBy === -1).sort((a, b) => Math.hypot(a.cx * 32 - s.unit.x, a.cy * 32 - s.unit.y) - Math.hypot(b.cx * 32 - s.unit.x, b.cy * 32 - s.unit.y))[0];
+await ev((g) => window.__debug.centerOn(g.cx * 32, g.cy * 32), g);
+await page.waitForTimeout(100);
+const c = await ev((g) => window.__debug.tileToScreen(g.cx, g.cy), g);
+await page.keyboard.press('z');
+await page.mouse.move(c.x, c.y);
+await page.waitForTimeout(150);
+await shot('01-shelter-ghost');
+await page.mouse.click(c.x, c.y);
+await page.keyboard.press('q');
+await page.mouse.move(c.x + 96, c.y);
+await page.keyboard.down('Shift');
+await page.mouse.click(c.x + 96, c.y);
+await page.mouse.click(c.x + 96, c.y + 96);
+await page.keyboard.up('Shift');
+await page.keyboard.press('q');
+// hover a blocked spot (a tree outside the grove)
+const t = await ev((g) => window.__debug.tileToScreen(g.cx + g.r + 2, g.cy), g);
+await page.mouse.move(t.x, t.y);
+await page.waitForTimeout(150);
+await shot('02-blocked-ghost');
+await page.keyboard.press('Escape');
+await ev(() => window.__debug.fastForward(30));
+await page.waitForTimeout(200);
+// drag-paint a wall line across a gap
+const gap = g.gaps[0];
+await page.keyboard.press('w');
+const a = await ev((p) => window.__debug.tileToScreen(p.x, p.y), gap);
+const b2 = await ev((p) => window.__debug.tileToScreen(p.x + 3, p.y), gap);
+await page.mouse.move(a.x, a.y);
+await page.mouse.down();
+await page.mouse.move(b2.x, b2.y, { steps: 4 });
+await page.waitForTimeout(150);
+await shot('03-wall-line');
+await page.mouse.up();
+await page.waitForTimeout(150);
+await shot('04-objectives-progress');
+const vis = await ev(() => !document.getElementById('objectives').hidden && document.querySelectorAll('#objectives li.done').length);
+console.log('objectives visible, done count:', vis, '| errors:', errors.length ? errors : 'none');
+await browser.close();

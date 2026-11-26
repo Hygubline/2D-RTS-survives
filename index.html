@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>烬林守夜 · Ashwood Vigil</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/hud.css" />
+    <link rel="stylesheet" href="/src/screens.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="view"></canvas>
+
+      <header id="topbar">
+        <div class="tb-left">
+          <div class="res amber" title="琥珀：建造与升级的唯一资源">
+            <i id="ico-amber" class="medal"></i><div><small>琥珀</small><b id="v-amber">0</b></div>
+          </div>
+          <div class="res income" title="每秒收入">
+            <i id="ico-income" class="medal"></i><div><small>收入 / 秒</small><b id="v-income">+0</b></div>
+          </div>
+          <div class="res lives" title="剩余生命">
+            <i id="ico-lives" class="medal"></i><div><small>生命</small><b id="v-lives">3</b></div>
+          </div>
+          <div class="res tech" title="书阁科技等级">
+            <i id="ico-tech" class="medal"></i><div><small>书阁</small><b id="v-tech">0</b></div>
+          </div>
+        </div>
+        <div class="tb-center">
+          <div class="dawn" title="距离黎明">
+            <div class="dawn-row">
+              <i id="ico-time"></i>
+              <div><small>距离黎明</small><b id="v-time">22:00</b></div>
+            </div>
+            <div class="dawn-bar"><div id="v-dawnbar"></div></div>
+            <div id="v-phase" class="phase" data-phase="early">前期 · 逃亡</div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <div class="threat" title="噬林魔群（两只）">
+            <i id="ico-hunter" class="medal bad"></i>
+            <div id="v-hunter" class="pack"></div>
+          </div>
+          <div id="v-hitems" class="hitems"></div>
+          <button id="btn-menu" class="tbtn" title="菜单">☰</button>
+          <button id="btn-pause" class="tbtn" title="暂停 (P)">❚❚</button>
+          <button id="btn-mute" class="tbtn" title="关闭音效 (M)"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="cross" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+          <button id="btn-help" class="tbtn" title="操作说明">?</button>
+        </div>
+      </header>
+
+      <div id="objectives" hidden></div>
+      <div id="place-tip" hidden></div>
+      <div id="msgs"></div>
+      <div id="dead-ind"></div>
+      <div id="pause-ind"><div>已暂停 <small>按 P 继续</small></div></div>
+
+      <footer id="bottom">
+        <div id="minimap-frame">
+          <canvas id="minimap" width="192" height="192"></canvas>
+        </div>
+        <div id="info">
+          <div class="portrait-frame"><canvas id="portrait" width="96" height="96"></canvas></div>
+          <div id="info-body"></div>
+        </div>
+        <div id="card"></div>
+      </footer>
+
+      <div id="banner"></div>
+      <div id="devpanel" hidden>
+        <div class="dev-title">开发者 · 阶段跳转 <small>F8</small></div>
+        <label>路线 <select id="dev-route"><option value="legion">军团流</option><option value="turret">炮塔流</option><option value="eco">经济流</option><option value="balanced">均衡流</option></select></label>
+        <div class="dev-row"><button data-jump="5">5分</button><button data-jump="10">10分</button><button data-jump="15">15分</button><button data-jump="20">20分</button></div>
+        <div class="dev-row"><button id="dev-amber">+5000 琥珀</button><button id="dev-reveal">揭示地图</button><button id="dev-hlv">噬林魔 +3 级</button></div>
+        <div id="dev-status"></div>
+      </div>
+      <div id="tooltip"></div>
+      <div id="overlay"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
