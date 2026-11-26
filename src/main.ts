@@ -1,5 +1,8 @@
 import { Game } from './game';
 import { MATCH } from './config/balance';
+import { ALTAR, PHASES } from './config/lategame';
+
+const fmtClock = (s: number): string => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 import { addHunterXp } from './sim/world';
 import { Lobby } from './ui/lobby';
 
@@ -38,7 +41,7 @@ const HELP = `
     <p>壁垒的本质是买时间；壁垒后的塔在噬林魔破墙时持续输出。</p>
     <p>噬林魔打建筑、杀守夜人都会变强。基地被破就撤退，去空地重建。</p>
     <p>塔每到特定等级会<b>质变</b>（连弩、冰封、灼魂、陨火……）。后期招募军团主动出击。</p>
-    <p>15:00 可建破晓祭坛，守住 90 秒即胜；18:00 血月升起，双方不再复活。坚守 ${MATCH.surviveSeconds / 60} 分钟、或把两头噬林魔各击倒 ${MATCH.hunterLives} 次亦可获胜。</p>
+    <p>${fmtClock(PHASES.altarUnlockAt)} 可建破晓祭坛，守住 ${ALTAR.charge} 秒即胜；${fmtClock(PHASES.bloodMoonAt)} 血月升起，双方不再复活。坚守 ${MATCH.surviveSeconds / 60} 分钟、或把两头噬林魔各击倒 ${MATCH.hunterLives} 次亦可获胜。</p>
   </div>
 </div>`;
 
@@ -56,7 +59,7 @@ function showStart(): void {
     <p class="sub">ASHWOOD VIGIL</p>
     <p class="tagline">四位守夜人，两头越杀越强的噬林魔。<br>熬过这一夜。</p>
     <div class="arc">${ARC.map((a) => `<div class="arc-step"><i>${a.n}</i><b>${a.name}</b><small>${a.time}</small><p>${a.text}</p></div>`).join('<span class="arc-link"></span>')}</div>
-    <div class="wins"><span>胜利条件</span><em>坚守至黎明 ${MATCH.surviveSeconds / 60}:00</em><em>破晓祭坛充能 90 秒</em><em>击倒两头噬林魔（各 ${MATCH.hunterLives} 条命）</em></div>
+    <div class="wins"><span>胜利条件</span><em>坚守至黎明 ${MATCH.surviveSeconds / 60}:00</em><em>破晓祭坛充能 ${ALTAR.charge} 秒</em><em>击倒两头噬林魔（各 ${MATCH.hunterLives} 条命）</em></div>
     <div class="roles">
       <button class="role warden" id="btn-start"><i></i><b>守夜人</b><span>点燃灯火，开始守夜</span><small>筑墙 · 种琥珀泉 · 与 3 名 AI 守夜人熬到黎明</small></button>
       <button class="role hunter" id="btn-hunt"><i></i><b>噬林魔</b><span>苏醒吧，开始狩猎</span><small>与 AI 同伴灰鬃一起撕开 4 座营地</small></button>

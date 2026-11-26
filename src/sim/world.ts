@@ -379,7 +379,7 @@ export function buildCost(world: World, player: Player, btype: BuildingType): nu
 export function checkBuild(world: World, player: Player, btype: BuildingType): string | null {
   const def = BUILDINGS[btype];
   const lv0 = def.levels[0];
-  if (btype === 'altar' && world.time < PHASES.altarUnlockAt) return '破晓祭坛 15:00 后才能建造';
+  if (btype === 'altar' && world.time < PHASES.altarUnlockAt) return `破晓祭坛 ${PHASES.altarUnlockAt / 60}:00 后才能建造`;
   if (lv0.reqLab && player.labLevel < lv0.reqLab) return `需要秘藏书阁 ${lv0.reqLab} 级`;
   if (def.maxCount !== undefined && countBuildings(world, player.id, btype) >= def.maxCount) return `${def.name}已达上限 (${def.maxCount})`;
   if (player.amber < buildCost(world, player, btype)) return '琥珀不足';

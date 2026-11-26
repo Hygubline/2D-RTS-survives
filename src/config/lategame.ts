@@ -6,18 +6,18 @@
 
 /** Match arc. Times in seconds. */
 export const PHASES = {
-  midAt: 300, // 5:00 — HUD label only
-  lateAt: 600, // 10:00
-  altarWarnAt: 870, // 14:30 broadcast
-  altarUnlockAt: 900, // 15:00 Dawn Altar can be built
-  bloodMoonWarnAt: 1020, // 17:00
-  bloodMoonAt: 1080, // 18:00 final showdown: no respawns, hunter evolves + enrages
-  dawnAt: 1320, // 22:00 wardens win if any remain
+  midAt: 210, // 3:30 — HUD label only
+  lateAt: 420, // 7:00
+  altarWarnAt: 570, // 9:30 broadcast
+  altarUnlockAt: 600, // 10:00 Dawn Altar can be built
+  bloodMoonWarnAt: 690, // 11:30
+  bloodMoonAt: 720, // 12:00 final showdown: no respawns, hunter evolves + enrages
+  dawnAt: 900, // 15:00 wardens win if any remain
 };
 
 /** Economy snowball control: per-player income above the soft cap is only partly effective. */
 export const ECON = {
-  softCap: 260, // amber/s per player
+  softCap: 310, // amber/s per player
   overCapEfficiency: 0.4,
 };
 
@@ -146,6 +146,6 @@ export const ALTAR = {
   armor: 10,
   buildTime: 20,
   reqLab: 3,
-  charge: 90, // seconds after construction to win
+  charge: 60, // seconds after construction to win
   hunterPriority: 12, // target value multiplier for the hunter AI
 };

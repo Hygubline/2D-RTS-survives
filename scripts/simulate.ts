@@ -14,7 +14,7 @@ import { createWorld, playerIncome, unitStats } from '../src/sim/world';
 
 const N = Number(process.argv[2] ?? 24);
 const ROUTES = Object.keys(STRATEGIES);
-const SNAP_MIN = [5, 10, 15, 20];
+const SNAP_MIN = [3.5, 7, 10, 12];
 
 interface RouteAgg {
   seats: number;

@@ -2,7 +2,7 @@
 import { chromium } from 'playwright';
 const b = await chromium.launch({ headless: true, args: ['--enable-gpu-rasterization', '--ignore-gpu-blocklist'] });
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
-await page.goto('http://localhost:5199/?seed=1000&dev=1&jump=15&route=turret', { waitUntil: 'networkidle' });
+await page.goto('http://localhost:5199/?seed=1000&dev=1&jump=10&route=turret', { waitUntil: 'networkidle' });
 await page.waitForFunction(() => /已到/.test(document.getElementById('dev-status')?.textContent ?? ''), null, { timeout: 90000 });
 
 

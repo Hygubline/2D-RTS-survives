@@ -32,9 +32,9 @@ Perf rule: no per-frame `createRadialGradient` — use cached sprites (`glow()`)
 Feedback requirement: click marker and UI response in the same frame as input; sim executes next tick (≤50 ms).
 
 ## 3. Economy model
-- Income levels grow ~×2.3; cost(n) = payback(n) × Δincome(n). Keep payback 45–90 s and monotonically rising.
+- Income levels grow ~×2.3; cost(n) = payback(n) × Δincome(n). Keep payback ~40–75 s (15-minute tempo) and monotonically rising.
 - Defense must be "time purchase": wallEHP / hunterSiegeDPS ≈ 12 s early → 30 s late.
-- After any balance change run `npm run simulate` and check: hunter win-rate 30–60 % across strategies, no strategy dominates by > 25 pts, average game length > 9 min.
+- After any balance change run `npm run simulate` and check: hunter win-rate 30–60 % across strategies, no strategy dominates by > 25 pts, average game length > 9 min (dawn is 15:00).
 
 ## 4. Pathfinding standard
 - Grid A* (8-dir, octile, no corner cutting past ANY obstacle incl. siege-passable buildings — otherwise the hunter plans routes through wall seams), binary heap, node cap with closest-node fallback.
@@ -52,9 +52,9 @@ Feedback requirement: click marker and UI response in the same frame as input; s
 - Warden AI: claim grove → shelter → seal gaps (1 gate + walls) → demand-driven loop (defense deficit vs ROI) → flee & rebuild when breached.
 
 ## 6b. Late game (src/config/lategame.ts)
-- Arc: escape (0–5) → hold (5–10) → counter-attack (10–18) → Blood Moon showdown (18–22, no respawns). Never lengthen the game with raw hp/dmg inflation — use phases, perks, army, skills, evolution.
+- Arc (15-minute tempo): escape (0–3:30) → hold (3:30–7) → counter-attack (7–12, altar from 10:00) → Blood Moon showdown (12–15, no respawns). Phase times live only in `PHASES`; UI text must read them, never hardcode clock times. Never lengthen the game with raw hp/dmg inflation — use phases, perks, army, skills, evolution.
 - Tower tiers must change *behaviour* (multishot, mark, freeze, shatter, burn, meteor, thorns) and look different.
-- Track the **counter-attack index** in the simulator: should be < 1 at 5 min and > 2 by 15 min.
+- Track the **counter-attack index** in the simulator: should be < 1 at 3.5 min and > 2 by 10 min.
 - AI placement must keep the warden connected (no self-walling) and only use reachable spots.
 - Dev phase jump (`?dev=1&jump=15&route=legion`) must hand over an undecided state with the player's base alive.
 
@@ -62,7 +62,7 @@ Feedback requirement: click marker and UI response in the same frame as input; s
 1. Page loads with no console errors; start screen → game.
 2. HUD: top resource bar (labelled medallions + hanging dawn crest with night-progress bar), bottom-left minimap, bottom info (icon stat chips via `chipify`) + command card fully on screen. HUD styles live in `src/hud.css`; overlays/help/end screen in `src/style.css`. Screenshot states with `node scripts/dev/hud-shots.mjs`.
    Title/end screens: `src/screens.css` + animated `ui/backdrop.ts` (night / dawn / ash). Overlay HUD pieces that overhang the map (dawn crest) must be `pointer-events: none`. Screenshot with `node scripts/dev/screen-shots.mjs`.
-   Early-game guidance: `ui/objectives.ts` (pure, unit-tested checklist, hidden after 5:00 or when done) and the build-ghost label (name, cost, count for drag lines, blocked reason). Screenshot with `node scripts/dev/guide-shots.mjs`.
+   Early-game guidance: `ui/objectives.ts` (pure, unit-tested checklist, hidden after the mid phase (3:30) or when done) and the build-ghost label (name, cost, count for drag lines, blocked reason). Screenshot with `node scripts/dev/guide-shots.mjs`.
    Audio: `audio/sfx.ts` synthesizes every sound with Web Audio (no files). `soundFor(event)` is the pure, unit-tested event→cue map; only events the player can see on screen are voiced (own building lost / own warden down / alerts always are). Per-sound cooldowns + a voice cap keep fights readable. Fast-forward and dev jumps are silent (`drainEvents(audible=false)`). M / top-bar button mutes (persisted in localStorage). Sim commands apply on the next tick: playtests must wait ≥1 tick before reading orders.
 3. Select Warden (click), move via RMB, path goes around trees.
 4. Place Amber Tap (Q hotkey) → construction completes → amber/s rises.
@@ -71,4 +71,4 @@ Feedback requirement: click marker and UI response in the same frame as input; s
 7. Hunter awakens at grace end, attacks buildings, towers damage it.
 8. Fast-forward (`window.__game.debug.fastForward(sec)`) to verify victory and defeat screens.
 9. `npm test` and `npm run simulate` pass.
-10. `npm run playtest:late`: dev jumps to 10/15/20 min, barracks training, army attack-move, tower statuses, Blood Moon evolution.
+10. `npm run playtest:late`: dev jumps to 7/10/12 min, barracks training, army attack-move, tower statuses, Blood Moon evolution.

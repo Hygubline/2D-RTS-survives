@@ -13,14 +13,14 @@ export const DT = 1 / TICK_RATE;
 
 export const MATCH = {
   surviveSeconds: PHASES.dawnAt, // dawn: wardens win
-  hunterGrace: 50, // seconds before the hunter awakens
+  hunterGrace: 35, // seconds before the hunter awakens
   survivorLives: 3,
-  survivorRespawn: 15,
+  survivorRespawn: 12,
   hunterLives: 2, // per hunter (the pack has HUNTER_PACK.count)
-  hunterRespawn: 25,
-  startAmber: 120,
+  hunterRespawn: 20,
+  startAmber: 150,
   aiSurvivors: 3,
-  scentInterval: 45, // hunter periodically senses all wardens
+  scentInterval: 35, // hunter periodically senses all wardens
   scentDuration: 5,
 };
 
@@ -82,7 +82,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDef> = {
     vision: 7,
     maxCount: 1,
     category: 'core',
-    levels: [{ cost: 0, hp: 1400, armor: 4, time: 4, income: 1 }],
+    levels: [{ cost: 0, hp: 1400, armor: 4, time: 4, income: 1.2 }],
   },
   harvester: {
     type: 'harvester',
@@ -94,12 +94,12 @@ export const BUILDINGS: Record<BuildingType, BuildingDef> = {
     category: 'eco',
     levelNames: ['涓流', '细泉', '涌泉', '琥珀井', '金脉', '永燃之心'],
     levels: [
-      { cost: 70, hp: 320, armor: 1, time: 6, income: 1.5 },
-      { cost: 160, hp: 480, armor: 2, time: 7, income: 3.6 },
-      { cost: 380, hp: 720, armor: 3, time: 9, income: 8.4, reqLab: 1 },
-      { cost: 900, hp: 1080, armor: 4, time: 11, income: 19.5, reqLab: 1 },
-      { cost: 2100, hp: 1600, armor: 5, time: 13, income: 45, reqLab: 2 },
-      { cost: 4900, hp: 2400, armor: 6, time: 15, income: 104, reqLab: 3 },
+      { cost: 70, hp: 320, armor: 1, time: 6, income: 1.8 },
+      { cost: 160, hp: 480, armor: 2, time: 7, income: 4.3 },
+      { cost: 380, hp: 720, armor: 3, time: 9, income: 10, reqLab: 1 },
+      { cost: 900, hp: 1080, armor: 4, time: 11, income: 23.4, reqLab: 1 },
+      { cost: 2100, hp: 1600, armor: 5, time: 13, income: 54, reqLab: 2 },
+      { cost: 4900, hp: 2400, armor: 6, time: 15, income: 125, reqLab: 3 },
     ],
   },
   wall: {
@@ -223,7 +223,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDef> = {
   altar: {
     type: 'altar',
     name: '破晓祭坛',
-    desc: '15:00 后可建（书阁3级）。建成后充能 90 秒，引来破晓之光直接终结噬林魔。噬林魔会全力摧毁它。',
+    desc: `${PHASES.altarUnlockAt / 60}:00 后可建（书阁3级）。建成后充能 ${ALTAR.charge} 秒，引来破晓之光直接终结噬林魔。噬林魔会全力摧毁它。`,
     size: 3,
     vision: 8,
     maxCount: 1,
@@ -293,9 +293,9 @@ export const HUNTER = {
   maxLevel: 20,
   xpBase: 60,
   xpPerLevel: 45,
-  passiveXp: 1.5,
-  passiveSoulfire: 2.8,
-  soulfireGrowth: 0.004, // per second, multiplicative on passive
+  passiveXp: 2.5,
+  passiveSoulfire: 4.3,
+  soulfireGrowth: 0.0062, // per second, multiplicative on passive
   titheRatio: 0.075, // share of all warden income the hunter absorbs as soulfire
   soulfirePerDamage: 0.12,
   destroyBountyRatio: 0.3,

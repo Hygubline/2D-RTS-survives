@@ -55,9 +55,9 @@ const summary = () =>
   });
 
 // ---- 10 minutes, legion route
-const j10 = await jump(10, 'legion');
+const j10 = await jump(7, 'legion');
 const s10 = await summary();
-check('dev jump reaches 10:00 with a living base', /已到 10:00/.test(j10) && s10.buildings.includes('shelter'), j10);
+check('dev jump reaches 7:00 with a living base', /已到 7:00/.test(j10) && s10.buildings.includes('shelter'), j10);
 check('phase chip shows the late phase', s10.phaseChip.startsWith('后期'), s10.phaseChip);
 await page.keyboard.press('h');
 await wait(300);
@@ -138,17 +138,17 @@ if (bar) {
     const hit = await ev((t) => { const el = document.elementFromPoint(t.x, t.y); return { tag: el?.id || el?.className || el?.tagName, mode: window.__debug.state().mode }; }, ts);
     await page.mouse.click(ts.x, ts.y);
     await wait(200); // commands are queued and applied on the next sim tick
-    const orders = await ev(() => { const w = window.__debug.world(); return [...w.units.values()].filter((u) => u.owner === 0 && u.utype !== 'survivor').map((u) => u.orders[0]?.type ?? 'idle'); });
+    const orders = await ev((ids) => { const w = window.__debug.world(); return ids.map((id) => w.units.get(id)).filter(Boolean).map((u) => u.orders[0]?.type ?? 'idle'); }, army.map((u) => u.id));
     check('Q + click issues attack-move to every unit', orders.length > 0 && orders.every((o) => o === 'attackMove' || o === 'attack'), `${orders.join(',')} click=${JSON.stringify(ts)} on=${JSON.stringify(hit)}`);
     void mm;
   }
 }
 
 // ---- 15 minutes, turret route: look at tier towers fighting
-const j15 = await jump(15, 'turret');
+const j15 = await jump(10, 'turret');
 const s15 = await summary();
-check('dev jump reaches 15:00', /已到 15:00/.test(j15), j15);
-check('turret route has tier-perk towers by 15:00', /bolt[3-5]|frost[2-3]|lance[2-3]/.test(s15.buildings), s15.buildings);
+check('dev jump reaches 10:00', /已到 10:00/.test(j15), j15);
+check('turret route has tier-perk towers by 10:00', /bolt[3-5]|frost[2-3]|lance[2-3]/.test(s15.buildings), s15.buildings);
 const towerSpot = await ev(() => {
   const w = window.__debug.world();
   const t = [...w.buildings.values()].filter((b) => ['bolt', 'frost', 'lance'].includes(b.btype)).sort((a, b) => b.level - a.level)[0];
@@ -170,6 +170,7 @@ console.log('status tower', statusTower?.desc);
 if (statusTower) await ev((t) => { const w = window.__debug.world(); const h = [...w.units.values()].find((u) => u.alive && u.utype === 'hunter'); if (h) { h.x = h.px = t.x + 64; h.y = h.py = t.y + 40; h.orders = []; h.path = []; h.hp = 1e6; } }, statusTower);
 let saw = false;
 for (let i = 0; i < 120 && !saw; i++) {
+  await ev(() => { const w = window.__debug.world(); for (const u of w.units.values()) if (u.alive && u.utype === 'hunter') u.hp = 1e6; }); // clamped to max hp on the next tick
   await ev(() => window.__debug.fastForward(1));
   saw = await ev(() => {
     const w = window.__debug.world();
@@ -183,11 +184,11 @@ const hp = await ev(() => { const w = window.__debug.world(); const h = w.units.
 check('tower perks apply statuses to the hunter (freeze/burn/mark)', saw);
 if (hp) await look('15-hunter-statuses', hp.x, hp.y - 40);
 
-// ---- 20 minutes, eco route: blood moon, altar
+// ---- 12 minutes (Blood Moon start), eco route: blood moon, altar
 // turret bases survive longest, so this route reliably reaches the Blood Moon
-const j20 = await jump(20, 'turret');
+const j20 = await jump(12.1, 'turret');
 const s20 = await summary();
-check('dev jump to 20:00 lands in an undecided Blood Moon', s20.bloodMoon && s20.phaseChip.startsWith('血月'), `${j20} / ${s20.phaseChip}`);
+check('dev jump to 12:06 lands in an undecided Blood Moon', s20.bloodMoon && s20.phaseChip.startsWith('血月'), `${j20} / ${s20.phaseChip}`);
 check('hunter has evolved by the Blood Moon', s20.hunter.evolved, `lv${s20.hunter.lv}`);
 await page.keyboard.press('h');
 await wait(300);

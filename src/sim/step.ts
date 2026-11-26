@@ -1,5 +1,5 @@
 import { DT, HUNTER, HUNTER_PACK, MATCH, SURVIVOR, TILE } from '../config/balance';
-import { BLOOD_MOON, EVOLUTION, PHASES } from '../config/lategame';
+import { BLOOD_MOON, EVOLUTION, PHASES, ALTAR } from '../config/lategame';
 import { tickSkills } from './hunterSkills';
 import { runHunterAI } from './ai/hunter';
 import { runSurvivorAI } from './ai/survivor';
@@ -39,7 +39,7 @@ function updatePhases(world: World): void {
   if (t >= PHASES.midAt) once(world, 'mid', () => broadcast(world, '夜色渐深——噬林魔越来越强，升级经济与防线吧。', 'info'));
   if (t >= PHASES.lateAt) once(world, 'late', () => emit(world, { e: 'banner', text: '深夜', sub: '书阁2级解锁兵营：招募林卫与游侠，转守为攻', tone: 'good' }));
   if (t >= PHASES.altarWarnAt) once(world, 'altarWarn', () => broadcast(world, '30 秒后可建造破晓祭坛（书阁3级）。', 'warn'));
-  if (t >= PHASES.altarUnlockAt) once(world, 'altar', () => emit(world, { e: 'banner', text: '破晓祭坛已可建造', sub: '建成并守住 90 秒，即可终结噬林魔', tone: 'epic' }));
+  if (t >= PHASES.altarUnlockAt) once(world, 'altar', () => emit(world, { e: 'banner', text: '破晓祭坛已可建造', sub: `建成并守住 ${ALTAR.charge} 秒，即可终结噬林魔`, tone: 'epic' }));
   if (t >= PHASES.bloodMoonWarnAt) once(world, 'moonWarn', () => broadcast(world, '血月将在 1 分钟后升起：届时任何一方都无法再复活！', 'bad'));
   if (t >= PHASES.bloodMoonAt && !world.bloodMoon)
     once(world, 'moon', () => {

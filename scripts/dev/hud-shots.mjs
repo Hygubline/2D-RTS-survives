@@ -19,7 +19,7 @@ await page.hover('.cmd >> nth=3');
 await page.waitForTimeout(200);
 await shot('03-tooltip');
 
-await page.goto(B + '?dev=1&jump=10&route=legion', { waitUntil: 'networkidle' });
+await page.goto(B + '?dev=1&jump=7&route=legion', { waitUntil: 'networkidle' });
 await page.waitForFunction(() => /已到/.test(document.getElementById('dev-status')?.textContent ?? ''), null, { timeout: 60000 });
 await page.evaluate(() => {
   const d = window.__debug;
@@ -30,7 +30,7 @@ await page.evaluate(() => {
 await page.waitForTimeout(400);
 await shot('04-building');
 
-await page.goto(B + '?dev=1&jump=20&route=eco', { waitUntil: 'networkidle' });
+await page.goto(B + '?dev=1&jump=13&route=eco', { waitUntil: 'networkidle' });
 await page.waitForFunction(() => /已到/.test(document.getElementById('dev-status')?.textContent ?? ''), null, { timeout: 90000 });
 await page.evaluate(() => {
   const d = window.__debug;
