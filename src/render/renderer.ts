@@ -4,6 +4,8 @@ import type { Building, Unit, World } from '../sim/types';
 import type { Perspective } from './perspective';
 import { buildingCenter, canPlace, unitStats } from '../sim/world';
 import { buildingSprite, drawScaffold, drawTurretHead, PAD, TOP } from './buildingSprites';
+import { drawProjectileArt } from './projectileArt';
+import { drawHarvesterLive } from './harvesterArt';
 import type { Camera } from './camera';
 import { glow, makeCanvas, type Ctx } from './draw';
 import { Fx } from './fx';
@@ -458,20 +460,36 @@ export class Renderer {
       ctx.save();
       ctx.translate(c.x, deckY);
       drawTurretHead(ctx, b.btype, b.level, b.aim, b.fireAnim / 0.2, t);
+      if (b.btype === 'bolt' && b.level >= 4) {
+        // 猎魔印记: a slowly turning rune ring hovering over the crossbow
+        ctx.save();
+        ctx.translate(0, -14);
+        ctx.scale(1, 0.4);
+        ctx.rotate(t * 0.8 + b.id);
+        ctx.strokeStyle = 'rgba(216,176,255,0.85)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
       ctx.restore();
     } else if (b.btype === 'harvester') {
-      const pulse = 0.5 + Math.sin(t * 3 + b.id) * 0.25;
-      glow(ctx, c.x, c.y - 4, 22 + b.level * 5, '#ffb03a', 0.28 * pulse + 0.1 * b.level * 0.3);
-      for (let i = 0; i < 2 + b.level; i++) {
-        const k = (t * 0.6 + i / (2 + b.level) + b.id * 0.13) % 1;
-        const mx = c.x + Math.sin(i * 2.1 + t) * 12;
-        const my = c.y - 6 - k * 34;
-        ctx.globalAlpha = 1 - k;
-        glow(ctx, mx, my, 4, '#ffd27a', 0.9);
+      drawHarvesterLive(ctx, c.x, c.y, b.level, t, b.id);
+    } else if (b.btype === 'frost') {
+      glow(ctx, c.x, c.y - 26, 26 + b.level * 6, '#bff2ff', 0.2 + b.level * 0.06 + Math.sin(t * 2 + b.id) * 0.08);
+      // drifting snowflakes; more with each tier
+      for (let i = 0; i < b.level * 4; i++) {
+        const k = (t * 0.35 + i / (b.level * 4) + b.id * 0.17) % 1;
+        const fx = c.x + Math.sin(i * 1.9 + t * 0.8) * 22;
+        const fy = c.y - 60 + k * 54;
+        ctx.globalAlpha = Math.sin(k * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(fx - 1, fy - 1, 2, 2);
       }
       ctx.globalAlpha = 1;
-    } else if (b.btype === 'frost') {
-      glow(ctx, c.x, c.y - 26, 26, '#bff2ff', 0.2 + Math.sin(t * 2 + b.id) * 0.08);
       if (b.level >= 2) {
         // 碎冰领域: a visible frost field around the tower
         ctx.strokeStyle = `rgba(190,240,255,${0.25 + Math.sin(t * 2) * 0.08})`;
@@ -631,80 +649,9 @@ export class Renderer {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(a);
-      if (p.variant === 'meteor') {
-        glow(ctx, 0, 0, 30, '#ff5a1a', 0.85);
-        glow(ctx, -18, 0, 20, '#ff9a3a', 0.5);
-        ctx.fillStyle = '#fff0c0';
-        ctx.beginPath();
-        ctx.arc(0, 0, 6, 0, Math.PI * 2);
-        ctx.fill();
-        if (Math.random() < 0.8) this.fx.add({ kind: 'ember', x: p.x, y: p.y, z: 0, vx: (Math.random() - 0.5) * 50, vy: (Math.random() - 0.5) * 50, vz: 10, life: 0.5, size: 3.5, color: '#ff7a2a' });
-      } else if (p.ptype === 'arrow') {
-        ctx.strokeStyle = '#6a4526';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(-9, 0);
-        ctx.lineTo(5, 0);
-        ctx.stroke();
-        ctx.fillStyle = '#cfd4da';
-        ctx.beginPath();
-        ctx.moveTo(8, 0);
-        ctx.lineTo(4, -2);
-        ctx.lineTo(4, 2);
-        ctx.fill();
-      } else if (p.ptype === 'bolt' && p.variant) {
-        const col = p.variant === 'mark' ? '#c890ff' : '#ffd870';
-        glow(ctx, -6, 0, 12, col, 0.6);
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(-16, 0);
-        ctx.lineTo(5, 0);
-        ctx.stroke();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(10, 0);
-        ctx.lineTo(4, -3);
-        ctx.lineTo(4, 3);
-        ctx.fill();
-      } else if (p.ptype === 'bolt') {
-        ctx.strokeStyle = '#5a3d1e';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-10, 0);
-        ctx.lineTo(4, 0);
-        ctx.stroke();
-        ctx.fillStyle = '#d8d8d8';
-        ctx.beginPath();
-        ctx.moveTo(8, 0);
-        ctx.lineTo(3, -2.5);
-        ctx.lineTo(3, 2.5);
-        ctx.fill();
-        ctx.fillStyle = '#e8e0d0';
-        ctx.fillRect(-11, -2, 3, 4);
-      } else if (p.ptype === 'frost') {
-        glow(ctx, 0, 0, 12, '#bff2ff', 0.7);
-        ctx.fillStyle = '#e8fbff';
-        ctx.beginPath();
-        ctx.moveTo(7, 0);
-        ctx.lineTo(0, -3.5);
-        ctx.lineTo(-6, 0);
-        ctx.lineTo(0, 3.5);
-        ctx.fill();
-      } else if (p.ptype === 'ember') {
-        glow(ctx, 0, 0, 18, '#ff7a2a', 0.8);
-        glow(ctx, -10, 0, 12, '#ff4a1a', 0.4);
-        ctx.fillStyle = '#fff0b0';
-        ctx.beginPath();
-        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-        if (Math.random() < 0.6) this.fx.add({ kind: 'ember', x: p.x, y: p.y, z: 0, vx: (Math.random() - 0.5) * 30, vy: (Math.random() - 0.5) * 30, vz: 10, life: 0.35, size: 2.5, color: '#ff9a4a' });
-      } else {
-        ctx.fillStyle = '#8a8680';
-        ctx.beginPath();
-        ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      drawProjectileArt(ctx, p, this.time, (color, size, life) =>
+        this.fx.add({ kind: 'ember', x: p.x, y: p.y, z: 0, vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40, vz: 10, life, size, color }),
+      );
       ctx.restore();
     }
   }

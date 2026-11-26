@@ -179,8 +179,9 @@ function fire(world: World, b: Building, target: Unit, index: number, shots: num
     slowTime: lv.slowTime ?? 0,
     splash: ((perk?.meteor?.splash ?? lv.splash) ?? 0) * TILE,
     sourceId: b.id,
+    level: b.level,
   });
-  if (index === 0) emit(world, { e: 'shoot', x: c.x, y: c.y - 22, ptype, variant });
+  if (index === 0) emit(world, { e: 'shoot', x: c.x, y: c.y - 22, ptype, variant, level: b.level });
 }
 
 export function updateProjectiles(world: World): void {
@@ -213,6 +214,7 @@ export function updateProjectiles(world: World): void {
 function impact(world: World, p: Projectile): void {
   const src = getEntity(world, p.sourceId) ?? null;
   const t = getEntity(world, p.targetId);
+  emit(world, { e: 'impact', x: p.x, y: p.y, ptype: p.ptype, variant: p.variant, level: p.level, splash: p.splash });
   if (p.splash > 0) {
     for (const hunter of hunterUnits(world)) if (Math.hypot(hunter.x - p.x, hunter.y - p.y) <= p.splash + hunter.radius) applyHit(world, hunter, p, src);
     return;

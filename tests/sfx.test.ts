@@ -9,7 +9,7 @@ describe('sound cue mapping', () => {
     const hit = { e: 'hit', id: 1, x: 0, y: 0, dmg: 10, onBuilding: true, source: 'melee' } as const;
     expect(soundFor(hit, onScreen)?.name).toBe('hitWood');
     expect(soundFor(hit, offScreen)).toBeNull();
-    expect(soundFor({ e: 'shoot', x: 0, y: 0, ptype: 'frost', variant: '' }, onScreen)?.name).toBe('frost');
+    expect(soundFor({ e: 'shoot', x: 0, y: 0, ptype: 'frost', variant: '', level: 0 }, onScreen)?.name).toBe('frost');
   });
 
   it('skips burn ticks so damage-over-time does not buzz', () => {

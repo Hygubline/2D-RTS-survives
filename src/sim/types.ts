@@ -124,6 +124,7 @@ export interface Projectile {
   slowTime: number;
   splash: number;
   sourceId: number;
+  level: number; // source building level (0 for units); render-only flavour
 }
 
 export interface HunterState {
@@ -185,7 +186,8 @@ export type EndReason = 'dawn' | 'altar' | 'hunterSlain' | 'wardensFell';
 
 export type GameEvent =
   | { e: 'hit'; id: number; x: number; y: number; dmg: number; onBuilding: boolean; source: DamageSource }
-  | { e: 'shoot'; x: number; y: number; ptype: Projectile['ptype']; variant: Projectile['variant'] }
+  | { e: 'shoot'; x: number; y: number; ptype: Projectile['ptype']; variant: Projectile['variant']; level: number }
+  | { e: 'impact'; x: number; y: number; ptype: Projectile['ptype']; variant: Projectile['variant']; level: number; splash: number }
   | { e: 'death'; x: number; y: number; utype: UnitType; owner: number }
   | { e: 'destroyed'; x: number; y: number; btype: BuildingType; size: number; owner: number }
   | { e: 'built'; x: number; y: number; btype: BuildingType; owner: number }

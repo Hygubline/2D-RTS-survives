@@ -1,5 +1,6 @@
 import type { BuildingType } from '../config/balance';
 import { TILE } from '../config/balance';
+import { drawHarvesterArt } from './harvesterArt';
 import { artRng, blobPath, glow, makeCanvas, planks, poly, roundRect, shade, shadow, stoneBlock, storybook, type Ctx } from './draw';
 
 export const PAD = 10;
@@ -36,7 +37,8 @@ export function buildingSprite(btype: BuildingType, level: number, color: string
       drawShelter(ctx, S, color, r);
       break;
     case 'harvester':
-      drawHarvester(ctx, S, level, color, r);
+      drawHarvesterArt(ctx, S, level, color, r);
+      levelPips(ctx, S / 2 - level * 3, S + 4, level);
       break;
     case 'bolt':
       drawTowerBase(ctx, S, level, color, r, 'bolt');
@@ -125,7 +127,21 @@ function drawWall(ctx: Ctx, level: number, mask: number, r: () => number): void 
     ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.fillRect(x0 + 2, y0 - H + 2, x1 - x0 - 4, 2);
-    if (m.kind === 'iron') {
+    if (m.kind === 'stone') {
+      // crenellated top: two merlons per tile
+      for (const k of [0.22, 0.62]) {
+        const mx = x0 + (x1 - x0) * k;
+        ctx.fillStyle = shade(m.top, 0.08);
+        ctx.fillRect(mx, y0 - H - 5, 7, 6);
+        ctx.strokeStyle = 'rgba(20,16,12,0.75)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(mx, y0 - H - 5, 7, 6);
+      }
+      ctx.fillStyle = 'rgba(90,140,60,0.75)';
+      ctx.beginPath();
+      ctx.ellipse(x0 + 4 + r() * 8, y1 - 2, 4, 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (m.kind === 'iron') {
       ctx.fillStyle = '#34363c';
       for (const bx of [x0 + 5, x1 - 8]) {
         ctx.fillRect(bx, fy, 3, H);
@@ -135,6 +151,20 @@ function drawWall(ctx: Ctx, level: number, mask: number, r: () => number): void 
         ctx.fillStyle = '#34363c';
       }
     } else if (m.kind === 'obsidian') {
+      const mx = (x0 + x1) / 2;
+      glow(ctx, mx, fy + H / 2, 12, '#b070ff', 0.45);
+      ctx.strokeStyle = '#e0c0ff';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(mx, fy + 3);
+      ctx.lineTo(mx, fy + H - 3);
+      ctx.moveTo(mx - 3, fy + 6);
+      ctx.lineTo(mx + 3, fy + 10);
+      ctx.moveTo(mx + 3, fy + 6);
+      ctx.lineTo(mx - 3, fy + 10);
+      ctx.stroke();
+      ctx.fillStyle = '#c9a24a';
+      ctx.fillRect(x0, fy - 1, x1 - x0, 2);
       ctx.strokeStyle = 'rgba(190,150,255,0.55)';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -151,11 +181,67 @@ function drawWall(ctx: Ctx, level: number, mask: number, r: () => number): void 
   if (level >= 2) {
     // thorns perk: spikes that visibly bristle on L3+ walls
     const n = Math.max(2, Math.round((x1 - x0) / 7));
-    const col = level >= 4 ? '#bff6ff' : '#3a2a20';
+    const col = level >= 4 ? '#bff6ff' : level >= 3 ? '#e0b440' : '#3a2a20';
     for (let i = 0; i < n; i++) {
       const sx = x0 + 3 + ((x1 - x0 - 6) * (i + 0.5)) / n;
       poly(ctx, [sx - 2.2, y0 - H + 1, sx, y0 - H - 6 - (level >= 4 ? 2 : 0), sx + 2.2, y0 - H + 1], col, 'rgba(10,8,6,0.9)', 0.9);
     }
+  }
+}
+
+/** Door leaf per level: rough planks → banded → iron-plated → runed obsidian → glowing crystal. */
+const GATE_DOOR = ['#6a4526', '#7a5230', '#55575e', '#2e2638', '#4fb4c0'] as const;
+
+function gateDoor(ctx: Ctx, x: number, y: number, w: number, h: number, level: number, color: string, r: () => number, vertical: boolean): void {
+  const lv = Math.min(level, 4);
+  if (lv <= 1) planks(ctx, x, y, w, h, GATE_DOOR[lv], r, !vertical);
+  else {
+    ctx.fillStyle = GATE_DOOR[lv];
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.strokeStyle = 'rgba(25,15,6,0.9)';
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(x, y, w, h);
+  if (lv >= 1) {
+    // iron bands
+    ctx.fillStyle = lv >= 3 ? '#c9a24a' : '#34363c';
+    if (vertical) for (const k of [0.25, 0.75]) ctx.fillRect(x, y + h * k - 1, w, 2);
+    else for (const k of [0.25, 0.75]) ctx.fillRect(x, y + h * k - 1, w, 2);
+  }
+  if (lv === 2) {
+    ctx.fillStyle = '#b8bcc4';
+    for (let i = 0; i < 6; i++) ctx.fillRect(x + 2 + (i % 3) * ((w - 5) / 2), y + 3 + Math.floor(i / 3) * (h - 7), 1.5, 1.5);
+  }
+  if (lv === 3) {
+    glow(ctx, x + w / 2, y + h / 2, 10, '#b070ff', 0.55);
+    ctx.strokeStyle = '#e0c0ff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + h / 2, Math.min(w, h) * 0.22, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (lv === 4) {
+    glow(ctx, x + w / 2, y + h / 2, 14, '#9ff3ff', 0.6);
+    ctx.fillStyle = 'rgba(230,255,255,0.6)';
+    ctx.fillRect(x + 2, y + 2, 2, h - 4);
+  }
+  // team stripe
+  ctx.fillStyle = color;
+  if (vertical) ctx.fillRect(x + w / 2 - 2, y + 4, 4, h - 8);
+  else ctx.fillRect(x + 5, y + 4, w - 10, 4);
+}
+
+function postCap(ctx: Ctx, x: number, y: number, w: number, level: number, top: string): void {
+  ctx.fillStyle = top;
+  ctx.fillRect(x, y, w, 4);
+  const cx = x + w / 2;
+  if (level === 2) poly(ctx, [cx - 2, y, cx, y - 6, cx + 2, y], '#9aa0a8', 'rgba(10,8,6,0.9)', 0.8);
+  else if (level === 3) {
+    poly(ctx, [cx - 3, y, cx, y - 7, cx + 3, y], '#e0b440', 'rgba(10,8,6,0.9)', 0.8);
+    glow(ctx, cx, y - 3, 5, '#ffe08a', 0.6);
+  } else if (level >= 4) {
+    poly(ctx, [cx - 3, y, cx, y - 9, cx + 3, y], '#c9fbff', 'rgba(20,60,70,0.9)', 0.9);
+    glow(ctx, cx, y - 4, 7, '#9ff3ff', 0.6);
   }
 }
 
@@ -165,31 +251,21 @@ function drawGate(ctx: Ctx, level: number, mask: number, color: string, r: () =>
   const horizontal = (mask & 2) !== 0 || (mask & 8) !== 0 || !(mask & 1 || mask & 4);
   shadow(ctx, 20, TILE - 2, 20, 7, 0.4);
   if (horizontal) {
-    // posts on left/right
     for (const px of [0, TILE - 7]) {
       stoneBlock(ctx, px, TILE - H - 8, 7, H + 6, m.base, r, 3);
-      ctx.fillStyle = m.top;
-      ctx.fillRect(px, TILE - H - 11, 7, 4);
+      postCap(ctx, px, TILE - H - 11, 7, level, m.top);
     }
-    planks(ctx, 7, TILE - H - 2, TILE - 14, H, '#6a4526', r, true);
-    ctx.strokeStyle = 'rgba(25,15,6,0.9)';
-    ctx.lineWidth = 1.2;
-    ctx.strokeRect(7, TILE - H - 2, TILE - 14, H);
-    ctx.fillStyle = color;
-    ctx.fillRect(12, TILE - H + 2, TILE - 24, 4);
-    ctx.fillStyle = '#c9a24a';
+    gateDoor(ctx, 7, TILE - H - 2, TILE - 14, H, level, color, r, false);
+    ctx.fillStyle = level >= 3 ? '#ffe08a' : '#c9a24a';
     ctx.beginPath();
     ctx.arc(TILE / 2 + 4, TILE - H / 2 - 1, 1.6, 0, Math.PI * 2);
     ctx.fill();
   } else {
     for (const py of [2, TILE - 8]) {
       stoneBlock(ctx, 9, py - H + 4, 14, H + 2, m.base, r, 3);
-      ctx.fillStyle = m.top;
-      ctx.fillRect(9, py - H + 1, 14, 4);
+      postCap(ctx, 9, py - H + 1, 14, level, m.top);
     }
-    planks(ctx, 11, 6 - H / 2, 10, TILE - 10, '#6a4526', r, false);
-    ctx.fillStyle = color;
-    ctx.fillRect(14, 10 - H / 2, 4, TILE - 18);
+    gateDoor(ctx, 11, 6 - H / 2, 10, TILE - 10, level, color, r, true);
   }
   levelPips(ctx, 4, TILE + 2, level, '#9fd0ff');
 }
@@ -282,89 +358,12 @@ function drawShelter(ctx: Ctx, S: number, color: string, r: () => number): void 
   ctx.fillRect(cx - 31, cy + 3, 4, 5);
 }
 
-// ---------------- harvester ----------------
-
-function drawHarvester(ctx: Ctx, S: number, level: number, color: string, r: () => number): void {
-  const cx = S / 2;
-  const cy = S / 2 + 6;
-  shadow(ctx, cx + 6, cy + 18, 32, 11, 0.45);
-  // basin
-  const rim = level >= 4 ? '#c9a24a' : level >= 2 ? '#8a8578' : '#6f5a40';
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + 8, 26, 14, 0, 0, Math.PI * 2);
-  ctx.fillStyle = shade(rim, -0.25);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(20,14,6,0.9)';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + 4, 24, 12, 0, 0, Math.PI * 2);
-  ctx.fillStyle = rim;
-  ctx.fill();
-  ctx.stroke();
-  // amber pool
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + 4, 18, 8, 0, 0, Math.PI * 2);
-  const pg = ctx.createRadialGradient(cx - 4, cy + 2, 1, cx, cy + 4, 18);
-  pg.addColorStop(0, '#ffe08a');
-  pg.addColorStop(0.5, '#f0a030');
-  pg.addColorStop(1, '#a35a12');
-  ctx.fillStyle = pg;
-  ctx.fill();
-  // crystals
-  const n = 2 + level;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2 + r() * 0.5;
-    const d = i === 0 ? 0 : 6 + r() * 6;
-    const x = cx + Math.cos(a) * d * 1.3;
-    const y = cy + 2 + Math.sin(a) * d * 0.6;
-    const h = (i === 0 ? 20 : 10 + r() * 8) + level * 2.5;
-    const w = (i === 0 ? 6 : 3.5) + level * 0.5;
-    poly(ctx, [x - w, y, x - w * 0.6, y - h * 0.8, x, y - h, x + w * 0.7, y - h * 0.75, x + w, y], '#f5a83a', 'rgba(70,30,4,0.95)', 1.2);
-    poly(ctx, [x - w * 0.6, y - h * 0.8, x, y - h, x, y], 'rgba(255,240,180,0.55)');
-  }
-  // wooden derrick frame
-  ctx.strokeStyle = '#4a2f18';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(cx - 24, cy + 10);
-  ctx.lineTo(cx - 4, cy - 30 - level * 2);
-  ctx.moveTo(cx + 24, cy + 10);
-  ctx.lineTo(cx + 4, cy - 30 - level * 2);
-  ctx.stroke();
-  ctx.strokeStyle = '#7a5230';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(cx - 24, cy + 10);
-  ctx.lineTo(cx - 4, cy - 30 - level * 2);
-  ctx.moveTo(cx + 24, cy + 10);
-  ctx.lineTo(cx + 4, cy - 30 - level * 2);
-  ctx.stroke();
-  ctx.fillStyle = '#3a2614';
-  ctx.fillRect(cx - 7, cy - 33 - level * 2, 14, 5);
-  // bucket on rope
-  ctx.strokeStyle = 'rgba(40,25,10,0.9)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(cx + 2, cy - 28 - level * 2);
-  ctx.lineTo(cx + 2, cy - 16);
-  ctx.stroke();
-  ctx.fillStyle = '#6a4526';
-  ctx.fillRect(cx - 1, cy - 16, 6, 5);
-  // owner tag
-  ctx.fillStyle = color;
-  ctx.fillRect(cx - 24, cy + 14, 5, 5);
-  ctx.strokeStyle = 'rgba(20,14,6,0.9)';
-  ctx.strokeRect(cx - 24, cy + 14, 5, 5);
-  levelPips(ctx, cx - level * 3, S + 4, level);
-}
-
 // ---------------- towers ----------------
 
 function drawTowerBase(ctx: Ctx, S: number, level: number, color: string, r: () => number, kind: 'bolt' | 'lance'): void {
   const cx = S / 2;
   shadow(ctx, cx + 8, S - 4, 30, 10, 0.45);
-  const body = kind === 'lance' ? '#3a3638' : level >= 1 ? '#8b877b' : '#7a5a3a';
+  const body = kind === 'lance' ? (level >= 2 ? '#4a3430' : '#3a3638') : level >= 4 ? '#6a5a82' : level >= 1 ? '#8b877b' : '#7a5a3a';
   const H = 30 + level * 3;
   const bw = 40;
   const bx = cx - bw / 2;
@@ -388,8 +387,12 @@ function drawTowerBase(ctx: Ctx, S: number, level: number, color: string, r: () 
   // crenellations
   for (let i = 0; i < 5; i++) {
     const x = bx - 4 + i * ((bw + 8 - 6) / 4);
-    ctx.fillStyle = kind === 'lance' ? '#4a4448' : level >= 1 ? '#a6a194' : '#8a6440';
+    ctx.fillStyle = kind === 'lance' ? (level >= 2 ? '#6a3a2a' : '#4a4448') : level >= 4 ? '#8a7aa8' : level >= 1 ? '#a6a194' : '#8a6440';
     ctx.fillRect(x, deckY - 5, 6, 7);
+    if (kind === 'bolt' && level >= 3) {
+      ctx.fillStyle = '#e0b440';
+      ctx.fillRect(x, deckY - 6, 6, 2);
+    }
     ctx.strokeStyle = 'rgba(20,14,6,0.85)';
     ctx.strokeRect(x, deckY - 5, 6, 7);
   }
@@ -405,15 +408,64 @@ function drawTowerBase(ctx: Ctx, S: number, level: number, color: string, r: () 
       ctx.stroke();
     }
   }
-  if (level >= 2) {
+  if (kind === 'lance' && level >= 1) {
+    // molten cracks; the top tier glows red-hot with a vent at each corner
+    ctx.strokeStyle = level >= 2 ? '#ffb040' : '#ff7a2a';
+    ctx.lineWidth = 1.4;
+    for (const sx of [bx + 5, bx + bw - 8]) {
+      ctx.beginPath();
+      ctx.moveTo(sx, by - H + 4);
+      ctx.lineTo(sx + 3, by - H * 0.6);
+      ctx.lineTo(sx, by - H * 0.35);
+      ctx.lineTo(sx + 2, by - 4);
+      ctx.stroke();
+      glow(ctx, sx + 1, by - H / 2, 8, '#ff6a1a', 0.5);
+    }
+    for (const vx of [bx - 2, bx + bw - 4]) {
+      ctx.fillStyle = '#1c1a1b';
+      ctx.fillRect(vx, deckY - 11, 6, 8);
+      glow(ctx, vx + 3, deckY - 12, level >= 2 ? 9 : 6, '#ff8a2a', 0.7);
+    }
+    if (level >= 2) {
+      ctx.fillStyle = '#ff9a3a';
+      ctx.fillRect(bx, by - 10, bw, 2.5);
+      glow(ctx, cx, by - 9, 22, '#ff5a1a', 0.4);
+    }
+  }
+  if (kind === 'bolt' && level >= 2) {
+    // iron bands and team panels
+    ctx.fillStyle = '#34363c';
+    ctx.fillRect(bx, by - H * 0.42, bw, 3);
     ctx.fillStyle = color;
     ctx.fillRect(bx + 3, by - H + 3, 6, 14);
     ctx.fillRect(bx + bw - 9, by - H + 3, 6, 14);
   }
-  if (level >= 3) {
-    ctx.strokeStyle = '#c9a24a';
+  if (kind === 'bolt' && level >= 3) {
+    ctx.strokeStyle = '#e0b440';
     ctx.lineWidth = 2;
     ctx.strokeRect(bx + 1, by - H + 1, bw - 2, H - 2);
+    // braziers on the corners of the deck
+    for (const vx of [bx - 4, bx + bw + 1]) {
+      poly(ctx, [vx, deckY + 2, vx + 7, deckY + 2, vx + 5, deckY + 7, vx + 2, deckY + 7], '#c9962a', 'rgba(20,14,6,0.9)', 1);
+      glow(ctx, vx + 3.5, deckY, 8, '#ffb040', 0.8);
+      poly(ctx, [vx + 1.5, deckY + 2, vx + 3.5, deckY - 4, vx + 5.5, deckY + 2], '#ffd27a');
+    }
+  }
+  if (kind === 'bolt' && level >= 4) {
+    // runic stone: glowing sigils down the face
+    glow(ctx, cx, by - H / 2, 18, '#b070ff', 0.45);
+    ctx.strokeStyle = '#e8d0ff';
+    ctx.lineWidth = 1.3;
+    for (const sy of [by - H * 0.75, by - H * 0.3]) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 9, sy);
+      ctx.lineTo(cx - 5, sy - 4);
+      ctx.lineTo(cx - 1, sy);
+      ctx.moveTo(cx + 1, sy);
+      ctx.lineTo(cx + 5, sy + 4);
+      ctx.lineTo(cx + 9, sy);
+      ctx.stroke();
+    }
   }
   banner(ctx, bx + bw + 2, deckY + 4, color, 18);
   levelPips(ctx, cx - level * 3, S + 4, level);
@@ -435,6 +487,27 @@ function drawFrost(ctx: Ctx, S: number, level: number, color: string, r: () => n
     const w = 5 + (1 - Math.abs(t)) * 3;
     poly(ctx, [x - w, py, x - w * 0.4, py - h * 0.85, x, py - h, x + w * 0.5, py - h * 0.8, x + w, py], '#9fe8ff', 'rgba(20,60,90,0.95)', 1.2);
     poly(ctx, [x - w * 0.4, py - h * 0.85, x, py - h, x, py], 'rgba(255,255,255,0.55)');
+  }
+  if (level >= 1) {
+    // ring of small ice shards around the plinth
+    for (let i = 0; i < 6 + level * 2; i++) {
+      const a = (i / (6 + level * 2)) * Math.PI * 2;
+      const x = cx + Math.cos(a) * 24;
+      const y = py + 4 + Math.sin(a) * 10;
+      if (Math.sin(a) < -0.2) continue;
+      poly(ctx, [x - 2, y, x, y - 7 - level * 2, x + 2, y], '#d8f8ff', 'rgba(20,60,90,0.9)', 0.8);
+    }
+  }
+  if (level >= 2) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(cx - Math.cos(a) * 5, py + 4 - Math.sin(a) * 3);
+      ctx.lineTo(cx + Math.cos(a) * 5, py + 4 + Math.sin(a) * 3);
+      ctx.stroke();
+    }
   }
   ctx.fillStyle = color;
   ctx.fillRect(cx - 4, py + 8, 8, 4);

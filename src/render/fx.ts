@@ -48,6 +48,54 @@ export class Fx {
     }
   }
 
+  /** Muzzle flash: grows with the tower level so upgrades are felt on every shot. */
+  private muzzle(x: number, y: number, ptype: string, variant: string, level: number): void {
+    const col = variant === 'mark' ? '#d0a0ff' : ptype === 'frost' ? '#c8f4ff' : ptype === 'ember' ? '#ffb060' : level >= 2 ? '#ffe08a' : '#fff2c0';
+    this.burst('spark', x, y, 3 + level * 2, col, 50 + level * 15, 0.25 + level * 0.04, 1.8 + level * 0.3, 20);
+    if (level >= 2) this.add({ kind: 'ring', x, y: y + 22, life: 0.25, size: 10 + level * 4, color: col });
+  }
+
+  /**
+   * Projectile impact, tiered by the firing tower's level. Low tiers are a puff;
+   * top tiers are novas, rune rings and screen shake.
+   */
+  private impact(x: number, y: number, ptype: string, variant: string, level: number, splash: number, shakeable: boolean): void {
+    const y0 = y - 12;
+    if (ptype === 'arrow' || ptype === 'stone') {
+      this.burst('spark', x, y0, 3, '#fff2c0', 40, 0.2, 1.6, 20);
+      return;
+    }
+    if (ptype === 'bolt') {
+      const col = variant === 'mark' ? '#c890ff' : level >= 2 ? '#ffd870' : '#fff2c0';
+      this.burst('spark', x, y0, 4 + level * 3, col, 60 + level * 25, 0.3 + level * 0.05, 1.8 + level * 0.35, 30);
+      if (level >= 1) this.burst('chip', x, y0, 2 + level, level >= 3 ? '#ffe7a0' : '#cfc8b8', 70, 0.5, 2, 60);
+      if (level >= 2) this.add({ kind: 'ring', x, y, life: 0.3, size: 12 + level * 5, color: col });
+      if (level >= 4) {
+        this.add({ kind: 'ring', x, y: y - 20, life: 0.55, size: 28, color: '#e0c0ff' });
+        this.burst('mote', x, y0, 6, '#e8d0ff', 40, 0.7, 2.2, 70);
+      }
+      return;
+    }
+    if (ptype === 'frost') {
+      const r = splash > 0 ? splash : 24;
+      this.burst('spark', x, y0, 8 + level * 6, '#d8f8ff', 80 + level * 40, 0.5 + level * 0.1, 2 + level * 0.5, 40);
+      this.add({ kind: 'ring', x, y, life: 0.4 + level * 0.1, size: r * (0.8 + level * 0.15), color: '#bff2ff' });
+      if (level >= 1) this.burst('mote', x, y0, 4 + level * 4, '#ffffff', 50, 0.9, 2, 30);
+      if (level >= 2) this.add({ kind: 'shock', x, y, life: 0.6, size: r * 1.2, color: '#9fe8ff' });
+      return;
+    }
+    // ember lance: fireball → bigger burst → meteor strike
+    const big = variant === 'meteor';
+    this.burst('ember', x, y0, 12 + level * 8, '#ff8a3a', 120 + level * 50, 0.7 + level * 0.1, 3 + level * 0.6, 90);
+    this.add({ kind: 'ring', x, y, life: 0.35 + level * 0.1, size: 26 + level * 12, color: '#ffb36a' });
+    if (level >= 1) this.burst('smoke', x, y0, 3 + level * 2, 'rgba(90,70,60,0.55)', 30, 1.1, 8, 30);
+    if (big) {
+      this.add({ kind: 'shock', x, y, life: 0.7, size: Math.max(64, splash * 1.3), color: '#ff6a2a' });
+      this.add({ kind: 'pillar', x, y, life: 0.6, size: 26, color: '#ffb060' });
+      if (shakeable) this.addShake(5);
+    } else if (level >= 1 && shakeable) this.addShake(1.5);
+  }
+
   text(x: number, y: number, text: string, color: string, size = 12, life = 1, vz = 30): void {
     this.add({ kind: 'text', x, y, vz, life, color, text, size });
   }
@@ -71,12 +119,7 @@ export class Fx {
           const towerHit = e.source !== 'melee' && e.source !== 'skill' && e.source !== 'cleave';
           this.burst('blood', e.x, e.y - 14, towerHit ? 4 : 7, towerHit ? '#6a2a7a' : '#b8242a', 70, 0.6, 2.2, 70);
         }
-        if (e.source === 'frost') this.burst('spark', e.x, e.y - 12, 8, '#bff2ff', 80, 0.5, 2, 40);
         if (e.source === 'thorns') this.burst('spark', e.x, e.y - 14, 6, '#c8ff9a', 70, 0.4, 2, 40);
-        if (e.source === 'ember') {
-          this.burst('ember', e.x, e.y - 12, 12, '#ff8a3a', 120, 0.7, 3, 90);
-          this.add({ kind: 'ring', x: e.x, y: e.y, life: 0.35, size: 26, color: '#ffb36a' });
-        }
         if (e.dmg >= 8 && e.dmg < 120 && !e.onBuilding) {
           const p = this.pending.get(e.id);
           if (p) {
@@ -94,7 +137,11 @@ export class Fx {
       }
       case 'shoot':
         if (!visible(e.x, e.y)) return;
-        this.burst('spark', e.x, e.y, e.variant ? 5 : 3, e.variant === 'mark' ? '#d0a0ff' : e.ptype === 'frost' ? '#c8f4ff' : e.ptype === 'ember' ? '#ffb060' : '#fff2c0', 50, 0.25, 1.8, 20);
+        this.muzzle(e.x, e.y, e.ptype, e.variant, e.level);
+        return;
+      case 'impact':
+        if (!visible(e.x, e.y)) return;
+        this.impact(e.x, e.y, e.ptype, e.variant, e.level, e.splash, onScreen(e.x, e.y));
         return;
       case 'swing':
         this.add({ kind: 'slash', x: e.x, y: e.y - (e.big ? 26 : 18), life: e.big ? 0.32 : 0.25, size: e.big ? 44 : 26, color: e.big ? '#ffb0a0' : '#ffe8e8', angle: e.angle });

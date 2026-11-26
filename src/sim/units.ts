@@ -131,8 +131,9 @@ function doAttack(world: World, u: Unit, o: Extract<Order, { type: 'attack' }>):
           slowTime: 0,
           splash: 0,
           sourceId: u.id,
+          level: 0,
         });
-        world.events.push({ e: 'shoot', x: u.x, y: u.y, ptype, variant: '' });
+        world.events.push({ e: 'shoot', x: u.x, y: u.y, ptype, variant: '', level: 0 });
       }
     }
     return;
