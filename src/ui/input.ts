@@ -1,4 +1,5 @@
 import { BUILDINGS, TILE, type BuildingType, type ItemSlot } from '../config/balance';
+import { WHEEL_ZOOM } from '../render/camera';
 import type { Command } from '../sim/commands';
 import { factionOf, isArmy, type Building, type Entity, type Unit, type World } from '../sim/types';
 import type { ArmyType, HunterSkill } from '../config/lategame';
@@ -28,6 +29,8 @@ export class Input {
   private dragStart: { x: number; y: number } | null = null;
   private panning: { x: number; y: number } | null = null;
   private keys = new Set<string>();
+  /** Player's follow-camera preference (Y toggles, remembered between games). */
+  private followPref = loadFollowPref();
   private groups = new Map<number, number[]>();
   private lastGroupKey = { k: -1, t: 0 };
   private lastClick = { t: 0, id: 0 };
@@ -36,6 +39,7 @@ export class Input {
   shift = false;
 
   constructor(private g: GameHost) {
+    g.cam.follow = this.followPref;
     const c = g.canvas;
     c.addEventListener('mousedown', (e) => this.onDown(e));
     window.addEventListener('mousemove', (e) => this.onMove(e));
@@ -213,7 +217,9 @@ export class Input {
   private onWheel(e: WheelEvent): void {
     e.preventDefault();
     const p = this.rect(e);
-    this.g.cam.zoomAt(p.x, p.y, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+    // line-mode wheels report ~3 per notch; pixel-mode wheels and trackpads report pixels
+    const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+    this.g.cam.zoomToward(p.x, p.y, Math.exp(-Math.max(-300, Math.min(300, dy)) * WHEEL_ZOOM));
     if (this.mode.kind === 'place') this.updatePlacement();
   }
 
@@ -471,6 +477,13 @@ export class Input {
     }
   }
 
+  private setFollow(on: boolean): void {
+    this.followPref = on;
+    this.g.cam.follow = on;
+    saveFollowPref(on);
+    this.g.toast(on ? '镜头跟随：开（Y 关闭）' : '镜头跟随：关（Y 开启）', 'info');
+  }
+
   private onKey(e: KeyboardEvent): void {
     if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
     this.keys.add(e.key);
@@ -491,7 +504,12 @@ export class Input {
       if (u) {
         this.setSelection([u.id], false);
         this.g.cam.centerOn(u.x, u.y);
+        this.g.cam.follow = this.followPref;
       }
+      return;
+    }
+    if (k === 'Y' && !e.ctrlKey) {
+      this.setFollow(!this.g.cam.follow);
       return;
     }
     if (k === 'P' || e.key === 'F10' || e.key === 'Pause') {
@@ -512,6 +530,7 @@ export class Input {
         const now = performance.now();
         if (this.lastGroupKey.k === n && now - this.lastGroupKey.t < 400) {
           const e0 = this.world.units.get(ids[0]) ?? this.world.buildings.get(ids[0]);
+          if (e0) this.g.cam.follow = false;
           if (e0) this.g.cam.centerOn(e0.kind === 'unit' ? e0.x : (e0.tx + 1) * TILE, e0.kind === 'unit' ? e0.y : (e0.ty + 1) * TILE);
         }
         this.lastGroupKey = { k: n, t: now };
@@ -521,7 +540,10 @@ export class Input {
     if (e.key === 'Backspace') {
       e.preventDefault();
       const a = this.g.view.lastAlert;
-      if (a) this.g.cam.centerOn(a.x, a.y);
+      if (a) {
+        this.g.cam.follow = false;
+        this.g.cam.centerOn(a.x, a.y);
+      }
       else this.g.toast('最近没有遇袭警报', 'info');
       return;
     }
@@ -529,6 +551,7 @@ export class Input {
       const sh = [...this.world.buildings.values()].find((b) => b.owner === this.me && b.btype === 'shelter');
       if (!sh) return this.g.toast('你还没有庇护所', 'warn');
       this.setSelection([sh.id], false);
+      this.g.cam.follow = false;
       this.g.cam.centerOn((sh.tx + 1.5) * TILE, (sh.ty + 1.5) * TILE);
       return;
     }
@@ -559,16 +582,20 @@ export class Input {
     if (this.keys.has('ArrowDown')) dy += speed;
     const m = this.mouse;
     const edge = 6;
-    if (m.inside && !this.dragStart) {
+    // edge panning is off while following, so resting the cursor at the border never breaks the lock
+    if (m.inside && !this.dragStart && !this.g.cam.follow) {
       if (m.x < edge) dx -= speed;
       if (m.x > this.g.cam.viewW - edge) dx += speed;
       if (m.y < edge) dy -= speed;
       if (m.y > this.g.cam.viewH - edge) dy += speed;
     }
     if (dx || dy) {
+      const wasFollowing = this.g.cam.follow;
       this.g.cam.pan(dx, dy);
+      if (wasFollowing) this.g.toast('镜头已解锁：按 Y 重新跟随，空格回到守夜人', 'info');
       if (this.mode.kind === 'place') this.updatePlacement();
     }
+    if (this.mode.kind === 'place' && (this.g.cam.follow || this.g.cam.targetZoom !== this.g.cam.zoom)) this.updatePlacement();
     // prune dead selection
     for (const id of this.g.view.selection) {
       const e = this.world.units.get(id) ?? this.world.buildings.get(id);
@@ -594,4 +621,22 @@ export function lineTiles(x0: number, y0: number, x1: number, y1: number): { x: 
     out.push({ x, y });
   }
   return out;
+}
+
+const FOLLOW_KEY = 'ashwood.followCam';
+
+function loadFollowPref(): boolean {
+  try {
+    return localStorage.getItem(FOLLOW_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+function saveFollowPref(on: boolean): void {
+  try {
+    localStorage.setItem(FOLLOW_KEY, on ? '1' : '0');
+  } catch {
+    // storage blocked (private mode): the toggle still works for this session
+  }
 }

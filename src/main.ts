@@ -26,7 +26,7 @@ const HELP = `
     <p><kbd>右键</kbd> 移动 · 攻击噬林魔 · 修理受损建筑</p>
     <p><kbd>Shift</kbd>+指令 加入队列；放置建筑时按住 Shift 连续建造</p>
     <p>壁垒/林门可<b>按住左键拖拽</b>一次画出整段</p>
-    <p><kbd>空格</kbd> 定位守夜人　<kbd>H</kbd> 庇护所　<kbd>Backspace</kbd> 跳到遇袭处</p>
+    <p><kbd>空格</kbd> 定位守夜人　<kbd>Y</kbd> 镜头跟随开关　<kbd>H</kbd> 庇护所　<kbd>Backspace</kbd> 跳到遇袭处</p>
     <p><kbd>Ctrl+数字</kbd> 编队　<kbd>滚轮</kbd> 缩放　<kbd>P</kbd> 暂停　<kbd>M</kbd> 音效开关</p>
   </div>
   <div><h3>指令快捷键</h3>

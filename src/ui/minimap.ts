@@ -37,6 +37,7 @@ export class Minimap {
       if (e.button === 2) this.onRightClick(p.x, p.y, e.shiftKey);
       else if (e.button === 0) {
         this.dragging = true;
+        this.cam.follow = false;
         this.cam.centerOn(p.x, p.y);
       }
     });

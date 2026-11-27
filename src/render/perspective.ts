@@ -62,6 +62,16 @@ export class Perspective {
     return this.visibleAt(world, c.x, c.y);
   }
 
+  /**
+   * Live details of a building (construction / upgrade progress, hp): own side always,
+   * the enemy only while it is in sight right now — remembered buildings reveal nothing new.
+   */
+  seesBuildingDetail(world: World, b: Building): boolean {
+    if (this.faction === 'survivor') return true; // every building belongs to the wardens
+    const c = buildingCenter(b);
+    return this.visibleAt(world, c.x, c.y);
+  }
+
   private scenting(world: World): boolean {
     return hunterPlayers(world).some((p) => (p.hunter?.scentActive ?? 0) > 0);
   }

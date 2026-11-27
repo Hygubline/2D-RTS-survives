@@ -281,7 +281,7 @@ export class Hud {
     if (!sel.length && world.players[me].faction === 'hunter') {
       if (this.infoSig !== 'hunter-guide') {
         this.infoSig = 'hunter-guide';
-        info.innerHTML = `<div class="hint"><b>狩猎指南</b><kbd>空格</kbd> 定位你的噬林魔 · <kbd>右键</kbd> 地面移动 · <kbd>右键</kbd> 建筑或守夜人攻击<br><kbd>Q</kbd> 扑杀 <kbd>W</kbd> 震地咆哮 <kbd>E</kbd> 腐蚀撕裂（随等级解锁）· <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd><kbd>Z</kbd> 用魂火购买装备<br>撕咬<b>琥珀泉</b>得到 3 倍魂火，啃墙只得一半——绕开城墙直扑经济！巢穴附近可快速回血。</div>`;
+        info.innerHTML = `<div class="hint"><b>狩猎指南</b><kbd>空格</kbd> 定位你的噬林魔 · <kbd>Y</kbd> 镜头跟随 · <kbd>右键</kbd> 地面移动 · <kbd>右键</kbd> 建筑或守夜人攻击<br><kbd>Q</kbd> 扑杀 <kbd>W</kbd> 震地咆哮 <kbd>E</kbd> 腐蚀撕裂（随等级解锁）· <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>F</kbd><kbd>Z</kbd> 用魂火购买装备<br>撕咬<b>琥珀泉</b>得到 3 倍魂火，啃墙只得一半——绕开城墙直扑经济！巢穴附近可快速回血。</div>`;
         this.pctx.clearRect(0, 0, this.portrait.width, this.portrait.height);
       }
       return;
@@ -289,7 +289,7 @@ export class Hud {
     if (!sel.length) {
       if (this.infoSig !== 'none') {
         this.infoSig = 'none';
-        info.innerHTML = `<div class="hint"><b>守夜指南</b><kbd>空格</kbd> 选中并定位守夜人 · <kbd>右键</kbd> 移动 / 修理 / 攻击<br><kbd>Q</kbd> 琥珀泉 <kbd>W</kbd> 壁垒 <kbd>E</kbd> 林门 <kbd>R</kbd> 弩塔 · 按住 <kbd>Shift</kbd> 连续建造<br>小地图上的金色圆圈是未被占据的林间空地，缺口越少越易防守。</div>`;
+        info.innerHTML = `<div class="hint"><b>守夜指南</b><kbd>空格</kbd> 选中并定位守夜人 · <kbd>Y</kbd> 镜头跟随 · <kbd>右键</kbd> 移动 / 修理 / 攻击<br><kbd>Q</kbd> 琥珀泉 <kbd>W</kbd> 壁垒 <kbd>E</kbd> 林门 <kbd>R</kbd> 弩塔 · 按住 <kbd>Shift</kbd> 连续建造<br>小地图上的金色圆圈是未被占据的林间空地，缺口越少越易防守。</div>`;
         this.pctx.clearRect(0, 0, this.portrait.width, this.portrait.height);
       }
       return;

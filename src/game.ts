@@ -412,14 +412,25 @@ export class Game implements GameHost {
     this.view.markers = this.view.markers.filter((m) => m.t < 0.6);
     for (const p of this.view.pings) p.t += dt;
     this.view.pings = this.view.pings.filter((p) => p.t < 4);
+    const alpha = this.paused ? 1 : this.acc / DT;
+    this.updateCamera(dt, alpha);
     if (!this.hud.coversView()) {
       this.view.persp.sync(this.world, this.view.localPlayer);
-      this.renderer.render(this.cam, this.paused ? 1 : this.acc / DT, this.view, dt);
+      this.renderer.render(this.cam, alpha, this.view, dt);
       this.minimap.draw(this.view.pings, this.view.localPlayer, this.view.persp);
       this.hud.update(this.world, this.view.localPlayer, this.input.selected(), this.input.mode.kind, this.paused);
       this.hud.placeTip(this.placementInfo());
     }
     requestAnimationFrame((t) => this.frame(t));
+  }
+
+  /** Smooth zoom, then (in follow mode) keep the local unit centred at its interpolated, drawn position. */
+  private updateCamera(dt: number, alpha: number): void {
+    this.cam.updateZoom(dt);
+    if (!this.cam.follow) return;
+    const u = this.world.units.get(this.world.players[this.view.localPlayer].unitId);
+    if (!u || !u.alive) return;
+    this.cam.track(u.px + (u.x - u.px) * alpha, u.py + (u.y - u.py) * alpha, dt);
   }
 
   /** What the build ghost should say: name, cost, count for drag lines, and why it is blocked. */
@@ -547,7 +558,10 @@ export class Game implements GameHost {
       },
       worldToScreen: (x: number, y: number) => this.cam.toScreen(x, y),
       tileToScreen: (tx: number, ty: number) => this.cam.toScreen((tx + 0.5) * TILE, (ty + 0.5) * TILE),
-      centerOn: (x: number, y: number) => this.cam.centerOn(x, y),
+      centerOn: (x: number, y: number) => {
+        this.cam.follow = false; // a manual jump, like a minimap click
+        this.cam.centerOn(x, y);
+      },
       buildingScreen: (id: number) => {
         const b = this.world.buildings.get(id);
         if (!b) return null;

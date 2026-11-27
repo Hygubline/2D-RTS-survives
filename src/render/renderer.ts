@@ -696,6 +696,7 @@ export class Renderer {
       }
     }
     for (const b of w.buildings.values()) {
+      if (!view.persp.seesBuildingDetail(w, b)) continue;
       const c = buildingCenter(b);
       const top = b.ty * TILE - (b.size === 1 ? 20 : 30);
       const sel = view.selection.has(b.id);
